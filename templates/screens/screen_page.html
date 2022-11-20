@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style type="text/css">
+      .message {
+        width: 90%;
+        min-height: 300px;
+        margin: 0 auto;
+        padding: 15px 15px;
+        text-align: justify;
+        border: 2px solid gray;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body style="text-align: center;">
+    <h1 contenteditable="true">Welcome to my real-time screen site !</h1>
+    <div
+      class="screen__item__container"
+      id="id_screen_item_container"
+      style="font-size: 20px;"
+    >
+      <h2 style="color: red;">Screen #{{ screen.id }}</h2>
+        <div id="id_message_send_input" class="message" contenteditable>{{ screen.message|safe }}</div><br />
+    </div>
+    <script>
+      const screenSocket = new WebSocket("ws://" + window.location.host + "/");
+      screenSocket.onopen = function (e) {
+        console.log("The connection was setup successfully !");
+      };
+      screenSocket.onclose = function (e) {
+        console.log("Something unexpected happened !");
+      };
+      document.querySelector("#id_message_send_input").focus();
+      document.querySelector("#id_message_send_input").onkeyup = function (e) {
+        const message = document.querySelector("#id_message_send_input");
+        screenSocket.send(JSON.stringify({ message: message.innerHTML }));
+      };
+      screenSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        const message = document.querySelector("#id_message_send_input");
+        message.innerHTML = data.message;
+
+        const sel = window.getSelection();
+        sel.selectAllChildren(message);
+        sel.collapseToEnd();
+      };
+    </script>
+  </body>
+</html>
